@@ -45,3 +45,12 @@
 
 # Ignore deployment secrets script with actual values
 /set-secrets.ps1
+
+# Mac Studio runtime data stays outside version control.
+/runtime.env
+/tunnel.token
+/deploy/release.env
+/backups/
+/logs/
+__pycache__/
+*.py[cod]

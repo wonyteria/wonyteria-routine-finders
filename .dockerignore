@@ -50,3 +50,12 @@
 # Ignore Docker-related files
 /.dockerignore
 /Dockerfile*
+
+# Host-side deployment tools and private runtime data are not app image inputs.
+/deploy/
+/compose.macstudio.yml
+/runtime.env
+/tunnel.token
+/backups/
+/logs/
+**/__pycache__/

@@ -1,0 +1,36 @@
+name: routine-finders
+
+services:
+  web:
+    image: ${RF_IMAGE:?Set RF_IMAGE to the verified production image}
+    platform: linux/arm64
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 60s
+    env_file:
+      - path: ./runtime.env
+        format: raw
+    environment:
+      RAILS_ENV: production
+      APP_HOST: www.routinefinders.life
+      SOLID_QUEUE_IN_PUMA: "true"
+    ports:
+      - "127.0.0.1:13200:80"
+    volumes:
+      - storage:/rails/storage
+    healthcheck:
+      test: [CMD, curl, --fail, --silent, http://127.0.0.1/up]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+volumes:
+  storage:
+    external: true
+    name: routine_finders_storage_macstudio
