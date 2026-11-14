@@ -12,7 +12,7 @@ class VerificationLog < ApplicationRecord
   validate :one_verification_per_day, on: :create
 
   # Scopes
-  scope :today, -> { where("DATE(created_at) = ?", Date.current) }
+  scope :today, -> { where(created_at: Time.current.all_day) }
   scope :recent, -> { order(created_at: :desc) }
 
   # Callbacks
@@ -48,7 +48,7 @@ class VerificationLog < ApplicationRecord
 
   def one_verification_per_day
     return unless participant && challenge
-    today_logs = participant.verification_logs.where("DATE(created_at) = ?", Date.current)
+    today_logs = participant.verification_logs.where(created_at: Time.current.all_day)
 
     if today_logs.where(status: [ :pending, :approved ]).exists?
       errors.add(:base, "오늘 이미 인증을 제출하셨습니다.")

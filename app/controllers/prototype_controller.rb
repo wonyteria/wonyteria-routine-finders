@@ -6,7 +6,6 @@ class PrototypeController < ApplicationController
   before_action :set_shared_data
   before_action :require_login, only: [ :my, :routine_builder, :challenge_builder, :gathering_builder, :record, :notifications, :clear_notifications, :pwa, :admin_dashboard, :club_management, :member_reports, :batch_reports, :confirm_club_payment, :reject_club_payment, :create_club_announcement, :update_club_lounge ]
   before_action :require_admin, only: [ :admin_dashboard, :club_management, :member_reports, :batch_reports, :confirm_club_payment, :reject_club_payment, :create_club_announcement, :update_club_lounge ]
-  before_action :block_unauthorized_admin, only: [ :system_command_center, :toggle_temp_access ]
 
   def login
   end

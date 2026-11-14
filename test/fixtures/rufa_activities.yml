@@ -6,7 +6,6 @@ one:
   target_id: 1
   target_type: MyString
   body: MyText
-  claps_count: 1
 
 two:
   user: participant
@@ -14,4 +13,3 @@ two:
   target_id: 1
   target_type: MyString
   body: MyText
-  claps_count: 1

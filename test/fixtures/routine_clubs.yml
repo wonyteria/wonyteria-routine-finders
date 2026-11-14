@@ -1,8 +1,6 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  id: 1
-
   title: 아침 운동 클럽
   description: 매일 아침 운동하는 클럽
   category: 운동

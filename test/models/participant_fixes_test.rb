@@ -22,7 +22,7 @@ class ParticipantFixesTest < ActiveSupport::TestCase
 
     p2 = Participant.new(user: user2, challenge: challenge, joined_at: Time.current)
     assert_not p2.save, "User 2 should NOT be able to join"
-    assert_includes p2.errors.full_messages, "챌린지 모집 정원이 꽉 찼습니다."
+    assert_includes p2.errors.full_messages, "모집 정원이 꽉 찼습니다."
   end
 
   test "one verification per day validation" do

@@ -7,7 +7,7 @@
 one:
   name: "첫 챌린지 완료"
   description: "첫 번째 챌린지를 완료했습니다"
-  badge_type: "challenge_completion"
+  badge_type: "verification_count"
   level: 1
   requirement_value: 1.0
   target_type: "challenge"
@@ -15,7 +15,7 @@ one:
 two:
   name: "10일 연속 인증"
   description: "10일 연속으로 인증했습니다"
-  badge_type: "streak"
+  badge_type: "max_streak"
   level: 1
   requirement_value: 10.0
-  target_type: "verification"
+  target_type: "challenge"

@@ -16,7 +16,7 @@ class ChallengeCreationTest < ActiveSupport::TestCase
       daily_goals: JSON.generate({ "mon" => ["Drink water"] }),
       days: JSON.generate(["mon", "tue"]),
       reward_policy: JSON.generate([{"rank" => "1", "reward" => "prize"}]),
-      certification_goal: JSON.generate(["Be healthy"]),
+      certification_goal: "Be healthy",
       application_questions: JSON.generate(["Why join?"])
     }
 
@@ -26,7 +26,7 @@ class ChallengeCreationTest < ActiveSupport::TestCase
 
     params_hash = controller.send(:challenge_params).to_h
     raw = controller.params[:challenge]
-    [ :days, :daily_goals, :reward_policy, :certification_goal, :application_questions ].each do |attr|
+    [ :days, :daily_goals, :reward_policy, :application_questions ].each do |attr|
       if raw && raw[attr].is_a?(String) && raw[attr].present?
         begin
           parsed_val = JSON.parse(raw[attr])
@@ -47,7 +47,7 @@ class ChallengeCreationTest < ActiveSupport::TestCase
     assert_equal ["mon", "tue"], challenge.days
     assert_equal({"mon"=>["Drink water"]}, challenge.daily_goals)
     assert_equal [{"rank"=>"1", "reward"=>"prize"}], challenge.reward_policy
-    assert_equal ["Be healthy"], challenge.certification_goal
+    assert_equal "Be healthy", challenge.certification_goal
     assert_equal ["Why join?"], challenge.application_questions
   end
 end

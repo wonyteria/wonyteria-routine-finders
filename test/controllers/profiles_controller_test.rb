@@ -15,9 +15,13 @@ class ProfilesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should get show when authenticated" do
+    assert badges(:one).valid?
+    assert_nil badges(:one).icon_path
     login_as(@user)
     get profile_path
     assert_response :success
+    assert_select "p", text: rufa_activities(:two).body
+    assert_select "span.text-5xl", text: "🏅"
   end
 
   test "should redirect edit to login when not authenticated" do

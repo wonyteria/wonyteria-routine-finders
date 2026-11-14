@@ -29,15 +29,9 @@ class GamificationAnalysisTest < ActiveSupport::TestCase
                             .where(created_at: start_date.beginning_of_day..end_date.end_of_day)
                             .count
         
-        begin
-          log_rate = user.monthly_routine_log_rate(date)
-          ach_rate = user.monthly_achievement_rate(date)
-          score = user.rufa_club_score(date)
-        rescue => _
-          log_rate = 0
-          ach_rate = 0
-          score = 0
-        end
+        log_rate = user.monthly_routine_log_rate(date)
+        ach_rate = user.monthly_achievement_rate(date)
+        score = user.rufa_club_score(date)
         
         {
           id: user.id,
@@ -49,6 +43,8 @@ class GamificationAnalysisTest < ActiveSupport::TestCase
         }
       end
       
+      assert_equal users.size, stats.size
+      assert stats.all? { |s| [:log_rate, :ach_rate, :score].all? { |key| s[key].finite? && s[key] >= 0 } }
       valid_stats = stats.select { |s| s[:routines] > 0 || s[:challenges] > 0 }
       
       if valid_stats.empty?
@@ -56,6 +52,7 @@ class GamificationAnalysisTest < ActiveSupport::TestCase
         next
       end
       
+      avg_routines = valid_stats.sum { |s| s[:routines] }.fdiv(valid_stats.size)
       out << "Tot: #{valid_stats.size}, AvgR: #{avg_routines.round(1)}"
       scores = valid_stats.map { |s| s[:score] }.sort
       out << "Scores P50: #{scores[(scores.size * 0.5).to_i]}, P90: #{scores[(scores.size * 0.9).to_i]}"

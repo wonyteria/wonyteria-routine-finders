@@ -1,0 +1,14 @@
+FROM ruby:3.4.1-slim-bookworm@sha256:156c4e22be088cf8e31438eb28204e61e89c201968740720c36604e571b74e8a
+ENV RAILS_ENV=test RACK_ENV=test CI=true DISABLE_BOOTSNAP=1 BUNDLE_WITHOUT=development BUNDLE_FROZEN=true \
+    SECRET_KEY_BASE=synthetic-ci-session-key-not-for-production-000000000000000000000000 \
+    DATABASE_URL=sqlite3:/rails/storage/test.sqlite3 TMPDIR=/rails/tmp/test-exec HOME=/tmp/home
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential git pkg-config libyaml-dev libsqlite3-dev libvips python3 \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /rails
+COPY Gemfile Gemfile.lock ./
+RUN bundle install --jobs 2 && rm -rf /usr/local/bundle/cache
+COPY . .
+RUN groupadd -g 10001 test-worker && useradd -u 10001 -g 10001 -d /tmp/home test-worker \
+    && mkdir -p storage log tmp/test-exec app/assets/builds && chown -R 10001:10001 /rails
+USER 10001:10001
+CMD ["sh", "-c", "bundle exec rails db:prepare && bundle exec rails test && python3 -m unittest discover -s deploy -p test_backup.py -v"]

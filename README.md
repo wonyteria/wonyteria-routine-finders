@@ -193,6 +193,12 @@ rails test:system
 
 ## 📦 배포
 
+### 개발 검증 CI
+
+`.github/workflows/test.yml`은 배포 자격정보 없이 Rails와 백업 도구를 검사합니다. 테스트 전용 Dockerfile의 별도 ignore 파일이 `.env`, credentials, 키, 운영 저장소를 빌드 문맥에서 제외합니다. 실제 검사는 비관리자·직접 네트워크 차단·메모리 2GiB의 일회성 컨테이너에서 합성 SQLite와 임시 파일만 사용합니다.
+
+기존 Deploy/Set Super Admin workflow의 비활성 상태를 유지합니다. 이 검증 workflow는 운영 배포·운영 env·DB를 변경하지 않습니다.
+
 ### Mac Studio 운영
 
 운영 도메인은 `https://www.routinefinders.life`이며, 루트 도메인은 경로와 쿼리를 보존해 `www`로 리다이렉트합니다. Cloudflare Tunnel은 Mac 호스트의 `http://127.0.0.1:13200`으로 연결하고, Compose는 이 포트를 컨테이너의 80번 포트에 연결합니다.

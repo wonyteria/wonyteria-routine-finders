@@ -1,0 +1,25 @@
+name: Verify Routine Finders
+on: [push, workflow_dispatch]
+permissions:
+  contents: read
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test:
+    name: Rails and backup tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Build credential-free test image
+        run: docker build -f .github/Dockerfile.test -t routine-finders-tests .
+      - name: Run isolated Rails and backup tests
+        run: >-
+          docker run --rm --init --network none --read-only
+          --user 10001:10001 --cap-drop ALL --security-opt no-new-privileges
+          --memory 2g --memory-swap 2g --cpus 2 --pids-limit 256
+          --tmpfs /tmp:rw,nosuid,nodev,exec,size=1g,uid=10001,gid=10001,mode=1777
+          --mount type=volume,dst=/rails routine-finders-tests
