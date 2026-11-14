@@ -297,3 +297,5 @@ python3 -m unittest discover -s deploy -p test_backup.py -v
 ---
 
 **Made with ❤️ by Routine Finders Team**
+
+CI checkout을 막던 `.gitmodules` 없는 `antigravity-awesome-skills` gitlink만 저장소 인덱스에서 제거했습니다. Rails 실행 의존성이 아니며 원본 개발 폴더의 파일을 삭제하지 않습니다.
