@@ -12,6 +12,8 @@ class PwaController < ApplicationController
   end
 
   def offline
+    # This guide is a literal public document; it must never contain session data.
+    response.headers["Cache-Control"] = "public, max-age=0, must-revalidate"
     render file: "app/views/pwa/offline.html", layout: false
   end
 
