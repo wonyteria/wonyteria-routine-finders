@@ -27,4 +27,10 @@ class PwaControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.headers["Cache-Control"], "no-cache"
     assert_includes response.headers["Cache-Control"], "max-age=0"
   end
+
+  test "offline retry button has an explicit type and accessible name" do
+    get pwa_offline_path
+    assert_response :success
+    assert_select 'button.retry-btn[type="button"][aria-label="인터넷 연결 확인 후 다시 시도"]', text: /\A\s*다시 시도\s*\z/, count: 1
+  end
 end
