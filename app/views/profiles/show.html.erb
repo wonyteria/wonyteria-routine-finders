@@ -300,12 +300,6 @@
                   <p class="text-sm font-bold text-slate-800"><%= activity.body %></p>
                   <p class="text-[10px] text-slate-400 font-bold mt-1 uppercase"><%= time_ago_in_words(activity.created_at) %> 전</p>
                 </div>
-                <% if activity.claps_count.to_i > 0 %>
-                   <div class="flex items-center gap-1 bg-pink-50 px-3 py-1 rounded-full">
-                      <span>👏</span>
-                      <span class="text-xs font-black text-pink-500"><%= activity.claps_count %></span>
-                   </div>
-                <% end %>
               </div>
             <% end %>
             <% if @rufa_activities.empty? %>
@@ -369,7 +363,7 @@
                 }[ub.badge.level.to_s] || "group-hover:shadow-indigo-500/40"
               %>
               <div class="flex flex-col items-center gap-2 p-4 bg-white/5 rounded-[24px] lg:rounded-3xl border border-white/5 group transition-all duration-300 hover:bg-white/10 hover:border-white/10 hover:-translate-y-1 <%= tier_glow %> hover:shadow-xl cursor-pointer">
-                <span class="text-3xl filter drop-shadow-[0_0_8px_rgba(255,255,255,0.2)] group-hover:scale-110 transition-transform"><%= ub.badge.icon_path %></span>
+                <span class="text-3xl filter drop-shadow-[0_0_8px_rgba(255,255,255,0.2)] group-hover:scale-110 transition-transform"><%= ub.badge.icon_path.presence || "🏅" %></span>
                 <div class="text-center">
                   <p class="text-[10px] lg:text-[11px] font-black text-white text-center truncate w-full px-1"><%= ub.badge.name %></p>
                   <p class="text-[8px] text-slate-500 font-bold mt-0.5 uppercase tracking-tighter"><%= ub.granted_at&.strftime("%y.%m.%d") %></p>
@@ -724,7 +718,7 @@
               <div class="absolute inset-x-4 top-4 aspect-square rounded-[32px] bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
 
               <div class="relative w-24 h-24 rounded-[32px] bg-[#0C0B12]/60 flex items-center justify-center mb-6 ring-1 ring-white/10 shadow-inner group-hover:scale-110 transition-transform duration-500 overflow-hidden">
-                <% if ub.badge.icon_path.start_with?("RF:") %>
+                <% if ub.badge.icon_path.to_s.start_with?("RF:") %>
                   <% 
                     parts = ub.badge.icon_path.split(":")
                     gen_num = parts[1]
@@ -769,7 +763,7 @@
                   <!-- Ambient Glow Background -->
                   <div class="absolute inset-4 rounded-full <%= tier_glow_class %> blur-2xl opacity-40 group-hover:opacity-100 transition-opacity"></div>
                 <% else %>
-                  <span class="text-5xl filter drop-shadow-[0_0_10px_rgba(255,255,255,0.3)] group-hover:drop-shadow-[0_0_20px_rgba(255,255,255,0.5)]"><%= ub.badge.icon_path %></span>
+                  <span class="text-5xl filter drop-shadow-[0_0_10px_rgba(255,255,255,0.3)] group-hover:drop-shadow-[0_0_20px_rgba(255,255,255,0.5)]"><%= ub.badge.icon_path.presence || "🏅" %></span>
                 <% end %>
               </div>
               

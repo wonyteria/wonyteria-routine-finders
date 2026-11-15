@@ -193,11 +193,17 @@ rails test:system
 
 ## 📦 배포
 
+### 개발 검증 CI
+
+`.github/workflows/test.yml`은 배포 자격정보 없이 Rails와 백업 도구를 검사합니다. 테스트 전용 Dockerfile의 별도 ignore 파일이 `.env`, credentials, 키, 운영 저장소를 빌드 문맥에서 제외합니다. 실제 검사는 비관리자·직접 네트워크 차단·메모리 2GiB의 일회성 컨테이너에서 합성 SQLite와 임시 파일만 사용합니다.
+
+기존 Deploy/Set Super Admin workflow의 비활성 상태를 유지합니다. 이 검증 workflow는 운영 배포·운영 env·DB를 변경하지 않습니다.
+
 ### Mac Studio 운영
 
 운영 도메인은 `https://www.routinefinders.life`이며, 루트 도메인은 경로와 쿼리를 보존해 `www`로 리다이렉트합니다. Cloudflare Tunnel은 Mac 호스트의 `http://127.0.0.1:13200`으로 연결하고, Compose는 이 포트를 컨테이너의 80번 포트에 연결합니다.
 
-운영 디렉터리는 `/Users/Hyphen/services/routine-finders`입니다. 저장소 checkout은 하위 `source/`에 두고, 운영용 `compose.macstudio.yml`과 `deploy/` 파일은 운영 디렉터리에 별도로 배치합니다. 저장소를 pull하는 것만으로 실행 중인 앱이나 운영 스크립트가 갱신되지는 않습니다.
+현재 확인된 운영 디렉터리는 `/Users/Hyphen/Library/Application Support/Wonyteria/routine-finders`입니다. 기존 상품의 경로와 데이터를 보존하며 새 작업실 경로와 분리합니다. 저장소 checkout은 하위 `source/`에 두고, 운영용 `compose.macstudio.yml`과 `deploy/` 파일은 운영 디렉터리에 별도로 배치합니다. 저장소를 pull하는 것만으로 실행 중인 앱이나 운영 스크립트가 갱신되지는 않습니다.
 
 - 운영 데이터 볼륨: `routine_finders_storage_macstudio`
 - 운영 환경변수: `runtime.env` — 비밀값 포함, 권한 `0600`, Git 제외
@@ -208,7 +214,7 @@ rails test:system
 Mac에 SSH로 접속한 뒤 운영 디렉터리에서 상태를 확인합니다.
 
 ```bash
-cd ~/services/routine-finders
+cd "/Users/Hyphen/Library/Application Support/Wonyteria/routine-finders"
 
 docker compose --env-file deploy/release.env -f compose.macstudio.yml ps
 docker compose --env-file deploy/release.env -f compose.macstudio.yml logs --tail=100 web
@@ -291,3 +297,15 @@ python3 -m unittest discover -s deploy -p test_backup.py -v
 ---
 
 **Made with ❤️ by Routine Finders Team**
+
+CI checkout을 막던 `.gitmodules` 없는 `antigravity-awesome-skills` gitlink만 저장소 인덱스에서 제거했습니다. Rails 실행 의존성이 아니며 원본 개발 폴더의 파일을 삭제하지 않습니다.
+
+CI checkout을 막던 `.gitmodules` 없는 외부 `antigravity-awesome-skills`·`quant` gitlink를 저장소 인덱스에서 제거했습니다. Rails 실행 의존성이 아니며 원본 개발 폴더의 파일을 삭제하지 않습니다. 모든 gitlink 목록을 대조해 추가 누락이 없음을 확인했습니다.
+
+### PWA 캐시 검증
+
+개인 화면·인증·API·변경 요청은 오프라인 저장하지 않습니다. 검증된 공개 정적 자산과 고정 오프라인 안내만 저장하고, 새 서비스워커 활성화 시 이 앱의 이전 캐시만 제거합니다. precache도 응답·redirect를 검사하며 공개 안내는 로그인 전후 본문이 같습니다. CI는 Node 24의 `node --test test/pwa_service_worker_test.mjs`도 실행합니다. 실제 로그인·Mac 설치 검증과 수정 이미지의 운영 반영은 별도 근거로 기록합니다.
+
+`deploy/*.plist`의 services 경로는 배치 템플릿입니다. 현재 설치된 launchd 경로를 조사한 뒤 적용해야 하며 이 수정에서 기존 운영 경로·env·터널·DB는 변경하지 않습니다.
+
+PWA manifest의 단일 원본은 `public/manifest.json`입니다. 앱 이동 범위는 `/`이며 기존 URL·시작 주소와 암묵적 앱 식별은 유지합니다. manifest에만 HTTP 재검증 정책을 적용해 일반 정적 자산의 일 년 캐시와 구분하고 서비스워커도 manifest를 재검증합니다. Rails manifest 통합 검사와 PWA 회귀 검사로 확인합니다.

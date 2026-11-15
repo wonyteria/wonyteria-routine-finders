@@ -4,7 +4,7 @@ class PwaController < ApplicationController
   before_action :require_login, only: [ :subscribe, :dismiss_notice ]
 
   def manifest
-    render file: "app/views/pwa/manifest.json.erb", content_type: "application/manifest+json"
+    render file: Rails.root.join("public", "manifest.json").to_s, content_type: "application/manifest+json"
   end
 
   def service_worker
@@ -12,6 +12,8 @@ class PwaController < ApplicationController
   end
 
   def offline
+    # This guide is a literal public document; it must never contain session data.
+    response.headers["Cache-Control"] = "public, max-age=0, must-revalidate"
     render file: "app/views/pwa/offline.html", layout: false
   end
 

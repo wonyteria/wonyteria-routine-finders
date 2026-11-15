@@ -2,7 +2,7 @@ require "test_helper"
 
 class AdminDashboardFeaturesTest < ActiveSupport::TestCase
   setup do
-    @host = User.create!(email: 'host_admin2@test.com', password: 'password', nickname: 'HostAdmin2', role: :admin)
+    @host = User.create!(email: 'host_admin2@test.com', password: 'password', nickname: 'HostAdmin2', role: :club_admin)
     @participant_user = User.create!(email: 'part2@test.com', password: 'password', nickname: 'Part2')
     
     @challenge = Challenge.create!(
@@ -35,6 +35,7 @@ class AdminDashboardFeaturesTest < ActiveSupport::TestCase
     update_params[:application_questions] = JSON.parse(update_params[:application_questions])
     
     @challenge.update!(update_params)
+    @challenge.reload
     
     assert_equal "LIFE", @challenge.category
     assert_equal ["Reward 1"], @challenge.reward_policy
@@ -44,7 +45,7 @@ class AdminDashboardFeaturesTest < ActiveSupport::TestCase
 
   test "cost cannot be updated when participants exist" do
     # Add a participant
-    @challenge.participants.create!(user: @participant_user, paid_amount: 10000)
+    @challenge.participants.create!(user: @participant_user, paid_amount: 10000, joined_at: Time.current)
     
     params_hash = {
       cost_type: "free",
@@ -67,7 +68,8 @@ class AdminDashboardFeaturesTest < ActiveSupport::TestCase
 
   test "duplicate pending application should be blocked" do
     # Simulate DB state for pending check
-    app1 = @challenge.challenge_applications.create!(user: @participant_user)
+    app1 = @challenge.challenge_applications.new(user: @participant_user, depositor_name: @participant_user.nickname, contact_info: "participant@example.invalid")
+    assert app1.save, app1.errors.full_messages.join(", ")
     
     # Create action logic
     has_pending = @challenge.challenge_applications.exists?(user: @participant_user, status: :pending)

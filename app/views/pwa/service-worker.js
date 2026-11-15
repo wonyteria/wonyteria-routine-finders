@@ -1,10 +1,9 @@
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const CACHE_NAME = `routine-finders-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline';
 
 // Assets to cache on install
 const PRECACHE_ASSETS = [
-    '/',
     '/offline',
     '/icon-192.png',
     '/pwa-icon-512.png'
@@ -13,9 +12,16 @@ const PRECACHE_ASSETS = [
 // Install event - cache essential assets
 self.addEventListener('install', (event) => {
     event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => cache.addAll(PRECACHE_ASSETS))
-            .then(() => self.skipWaiting())
+        Promise.all(PRECACHE_ASSETS.map(async path => {
+            const response = await fetch(new Request(new URL(path, self.location.origin), {
+                credentials: 'omit', cache: 'reload', redirect: 'error'
+            }));
+            if (!cacheableResponse(response)) throw new Error('Unsafe precache response');
+            return [path, response];
+        })).then(async entries => {
+            const cache = await caches.open(CACHE_NAME);
+            await Promise.all(entries.map(([path, response]) => cache.put(path, response)));
+        }).then(() => self.skipWaiting())
     );
 });
 
@@ -32,37 +38,49 @@ self.addEventListener('activate', (event) => {
     );
 });
 
-// Fetch event - network first, fallback to cache
-self.addEventListener('fetch', (event) => {
-    // Skip cross-origin requests
-    if (!event.request.url.startsWith(self.location.origin)) {
-        return;
-    }
+// Cache only app-owned public assets. Personalized documents, auth/API responses,
+// mutations and redirects must never enter Cache Storage, even with HTTP 200.
+function cacheableRequest(request) {
+    const url = new URL(request.url);
+    return request.method === 'GET' && url.origin === self.location.origin &&
+        (url.pathname.startsWith('/assets/') || PRECACHE_ASSETS.includes(url.pathname));
+}
 
-    event.respondWith(
-        fetch(event.request)
-            .then(response => {
-                // Clone the response before caching
-                const responseToCache = response.clone();
-                caches.open(CACHE_NAME).then(cache => {
-                    cache.put(event.request, responseToCache);
+function cacheableResponse(response) {
+    return response.ok && response.type === 'basic' && !response.redirected &&
+        !/(?:private|no-store)/i.test(response.headers.get('cache-control') || '') &&
+        !/(?:cookie|authorization)/i.test(response.headers.get('vary') || '');
+}
+
+self.addEventListener('fetch', (event) => {
+    const request = event.request;
+    const url = new URL(request.url);
+    if (request.method !== 'GET' || url.origin !== self.location.origin) return;
+
+    event.respondWith((async () => {
+        try {
+            const response = await fetch(request, url.pathname === '/manifest.json' ? { cache: 'no-cache' } : undefined);
+            if (cacheableRequest(request) && cacheableResponse(response)) {
+                const responseForCache = response.clone();
+                event.waitUntil(caches.open(CACHE_NAME)
+                    .then(cache => cache.put(request, responseForCache))
+                    .catch(() => {}));
+            }
+            return response;
+        } catch {
+            const cache = await caches.open(CACHE_NAME);
+            if (request.mode === 'navigate') {
+                return (await cache.match(OFFLINE_URL)) || new Response('오프라인 상태입니다.', {
+                    status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' }
                 });
-                return response;
-            })
-            .catch(() => {
-                // If network fails, try cache
-                return caches.match(event.request)
-                    .then(response => {
-                        if (response) {
-                            return response;
-                        }
-                        // If not in cache and it's a navigation request, show offline page
-                        if (event.request.mode === 'navigate') {
-                            return caches.match(OFFLINE_URL);
-                        }
-                    });
-            })
-    );
+            }
+            if (cacheableRequest(request)) {
+                const cached = await cache.match(request);
+                if (cached) return cached;
+            }
+            return Response.error();
+        }
+    })());
 });
 
 // Push notification event

@@ -24,8 +24,8 @@
 # * has_many :notifications - 알림
 #
 # === Level System
-# 레벨은 total_routine_completions / 10으로 계산됩니다.
-# 예: 50회 완료 = 레벨 5
+# 레벨은 루틴·챌린지·커뮤니티 활동 점수와 LEVEL_THRESHOLDS로 계산됩니다.
+# 예: 루틴 50회 완료만 있는 사용자는 500점으로 레벨 3입니다.
 #
 class User < ApplicationRecord
   after_initialize :set_default_preferences, if: :new_record?

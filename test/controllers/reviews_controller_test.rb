@@ -48,7 +48,7 @@ class ReviewsControllerTest < ActionDispatch::IntegrationTest
       }
     end
 
-    assert_redirected_to challenge_path(@challenge, tab: "reviews")
+    assert_redirected_to challenge_path(@challenge, tab: "community")
   end
 
   test "should not create review with invalid params" do

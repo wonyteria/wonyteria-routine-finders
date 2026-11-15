@@ -2,7 +2,7 @@ require "test_helper"
 
 class ChallengeTest < ActiveSupport::TestCase
   def setup
-    @user = users(:one)
+    @user = users(:host)
     @challenge = Challenge.new(
       title: "30일 독서 챌린지",
       description: "매일 30분 독서하기",
@@ -45,16 +45,19 @@ class ChallengeTest < ActiveSupport::TestCase
   end
 
   test "should have many participants" do
-    challenge = challenges(:one)
+    challenge = challenges(:free_challenge)
     assert_respond_to challenge, :participants
   end
 
-  test "should calculate duration correctly" do
-    assert_equal 30, @challenge.duration_days
+  test "should allow a single-day challenge" do
+    @challenge.end_date = @challenge.start_date
+    assert @challenge.valid?, @challenge.errors.full_messages.join(", ")
   end
 
-  test "offline? should return true when meeting_type is present" do
-    @challenge.meeting_type = "offline"
+  test "offline? follows mode rather than meeting type" do
+    @challenge.meeting_type = :single
+    assert_not @challenge.offline?
+    @challenge.mode = :offline
     assert @challenge.offline?
   end
 
@@ -64,7 +67,7 @@ class ChallengeTest < ActiveSupport::TestCase
   end
 
   test "should increment current_participants" do
-    challenge = challenges(:one)
+    challenge = challenges(:free_challenge)
     initial_count = challenge.current_participants
     challenge.increment!(:current_participants)
     assert_equal initial_count + 1, challenge.reload.current_participants
