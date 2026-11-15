@@ -59,7 +59,7 @@ self.addEventListener('fetch', (event) => {
 
     event.respondWith((async () => {
         try {
-            const response = await fetch(request);
+            const response = await fetch(request, url.pathname === '/manifest.json' ? { cache: 'no-cache' } : undefined);
             if (cacheableRequest(request) && cacheableResponse(response)) {
                 const responseForCache = response.clone();
                 event.waitUntil(caches.open(CACHE_NAME)

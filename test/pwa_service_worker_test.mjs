@@ -12,7 +12,7 @@ function harness(){
   const cache={match:async r=>stored.has(key(r))?new Response(stored.get(key(r))):undefined,
     put:async(r,response)=>{puts.push(key(r));stored.set(key(r),await response.text());},addAll:async items=>added.push(...items)};
   const self={location:{origin},addEventListener:(name,fn)=>handlers[name]=fn,skipWaiting:async()=>{},clients:{claim:async()=>{}}};
-  const context={self,URL,Request,Response,console,caches:{open:async()=>{if(openGate)await openGate;return cache;},keys:async()=>['routine-finders-v1','routine-finders-v2','unrelated-app'],delete:async name=>deleted.push(name)},fetch:async request=>{added.push({path:key(request),credentials:request.credentials,redirect:request.redirect});if(!online)throw Error('synthetic offline');return result();}};
+  const context={self,URL,Request,Response,console,caches:{open:async()=>{if(openGate)await openGate;return cache;},keys:async()=>['routine-finders-v1','routine-finders-v2','unrelated-app'],delete:async name=>deleted.push(name)},fetch:async (request,options)=>{added.push({path:key(request),credentials:request.credentials,redirect:request.redirect,cache:options?.cache});if(!online)throw Error('synthetic offline');return result();}};
   vm.runInNewContext(source,context);
   return {stored,puts,deleted,added,delayOpen(){let release;openGate=new Promise(resolve=>release=resolve);return release;},async flush(){await Promise.all(pending.splice(0));},setOffline:()=>online=false,setResponse:fn=>result=fn,
     async event(name){handlers[name]({waitUntil:p=>pending.push(p)});await Promise.all(pending.splice(0));},
@@ -52,4 +52,8 @@ test('precache refuses private, no-store or redirected documents before writing 
 });
 test('public responses are cloned before asynchronous cache opening and body consumption',async()=>{
   const h=harness(),release=h.delayOpen();h.setResponse(()=>publicAsset());const response=await h.request('/assets/slow.css',{drain:false});await response.text();release();await h.flush();assert.equal(h.stored.get('/assets/slow.css'),'PUBLIC_ASSET');
+});
+
+test('manifest requests revalidate HTTP cache without entering Cache Storage',async()=>{
+  const h=harness();h.setResponse(()=>publicAsset());await h.request('/manifest.json');assert.equal(h.added[0].cache,'no-cache');assert.deepEqual(h.puts,[]);
 });

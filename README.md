@@ -307,3 +307,5 @@ CI checkout을 막던 `.gitmodules` 없는 외부 `antigravity-awesome-skills`·
 개인 화면·인증·API·변경 요청은 오프라인 저장하지 않습니다. 검증된 공개 정적 자산과 고정 오프라인 안내만 저장하고, 새 서비스워커 활성화 시 이 앱의 이전 캐시만 제거합니다. precache도 응답·redirect를 검사하며 공개 안내는 로그인 전후 본문이 같습니다. CI는 Node 24의 `node --test test/pwa_service_worker_test.mjs`도 실행합니다. 실제 로그인·Mac 설치 검증과 수정 이미지의 운영 반영은 별도 근거로 기록합니다.
 
 `deploy/*.plist`의 services 경로는 배치 템플릿입니다. 현재 설치된 launchd 경로를 조사한 뒤 적용해야 하며 이 수정에서 기존 운영 경로·env·터널·DB는 변경하지 않습니다.
+
+PWA manifest의 단일 원본은 `public/manifest.json`입니다. 앱 이동 범위는 `/`이며 기존 URL·시작 주소와 암묵적 앱 식별은 유지합니다. manifest에만 HTTP 재검증 정책을 적용해 일반 정적 자산의 일 년 캐시와 구분하고 서비스워커도 manifest를 재검증합니다. Rails manifest 통합 검사와 PWA 회귀 검사로 확인합니다.
